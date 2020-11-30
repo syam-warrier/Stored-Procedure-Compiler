@@ -31,6 +31,6 @@ if __name__ == '__main__':
     stored_proc['Query'] = Query.genQuery().replace('\n','\n      ')
     stored_proc['Stored Procedure'] = 'CREATE OR REPLACE PROCEDURE ' + stored_proc['SP NAME'] + '\n  RETURNS VOID\n  LANGUAGE JAVASCRIPT\n  AS\n  $$\n    //Part 1 : Business Logic\n    var bus_query    = \'\n      INSERT INTO ' + stored_proc['Target DB Table'] + '\n      (\n        ' + stored_proc['Target Column'] + '\n      )\n      ' + stored_proc['Query'] + '\';\n    var statement   =    snowflake.createStatement( {sqlText: bus_query} );\n    statement.execute();\n  $$\n  ;'
     
-    stored_proc.to_csv(stored_proc['SP NAME'].unique()[0], columns=['Stored Procedure'], header=None, index=None, sep=';', quotechar=' ')
+    stored_proc.to_csv(stored_proc['SP NAME'].unique()[0] + ".sql", columns=['Stored Procedure'], header=None, index=None, sep=';', quotechar=' ')
 
 
