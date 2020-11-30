@@ -22,7 +22,7 @@ if __name__ == '__main__':
 
     Query.flush()
     for index, row in spec.iterrows():
-        Query.parseColumn(row['Logic'], row['Target Column'], row['Source DB Table'])
+        Query.parseColumn(row['Python Logic'], row['Target Column'], row['Source DB Table'])
 
     stored_proc = spec.groupby(['SP NAME'], sort=False)[['SP NAME']].agg(lambda x : '\n          ,'.join(OrderedSet(x.fillna(''))))
     stored_proc['Target DB Table'] = spec.groupby(['SP NAME'], sort=False)['Target DB Table'].agg(lambda x : '\n      '.join(OrderedSet(x.fillna(''))))
