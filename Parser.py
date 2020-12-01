@@ -19,6 +19,7 @@ class Parser:
         loopRunCount = 1
         while True:
             prev_string = string
+            restart = False
             for patternName, regexString in regex_dict.items():
                 if mode == 'Debug':
                     print('\n' + patternName + ' : ' + regexString)
@@ -31,7 +32,7 @@ class Parser:
                     string = std_string
                     
                     for keyword in keywords:
-                        string = string.replace(keyword.replace('-', '  '), keyword) 
+                        string = string.replace(keyword.replace('_', '  '), keyword) 
                         
                 offset = 0
                 for match in re.finditer(regexString, string, flags=re.IGNORECASE):
@@ -57,24 +58,20 @@ class Parser:
                                 if mode == 'Debug':
                                     print('5. Replacing <' + matchedString + '> with <'+ ' ' + token + ' >.')
                                 #string = re.sub(matchedString, ' ' + token + ' ', string)
-                                string = string[0:match.start() + offset] + token + string[match.end() + offset:len(string) + offset]
+                                string = string[0:match.start() + offset] + token + string[match.end() + offset:len(string)]
                                 offset += len(token) - (match.end() - match.start())
                                 
-                                break
-                                
-                            if patternName == 'NUMBER':
+                            elif patternName == 'NUMBER':
                                 if mode == 'Debug':
                                     print('4. Detected as NUMBER')
                                 token = TokenSet.registerToken(Number(matchedStringParts[0]))
                                 
                                 if mode == 'Debug':
                                     print('5. Replacing <' + matchedString + '> with <' + ' ' + token + ' >.')
-                                string = string[0:match.start() + offset] + token + string[match.end() + offset:len(string) + offset]
+                                string = string[0:match.start() + offset] + token + string[match.end() + offset:len(string)]
                                 offset += len(token) - (match.end() - match.start())
                                 
-                                break
-                                
-                            if patternName == 'TABLE':
+                            elif patternName == 'TABLE':
                                 if mode == 'Debug':
                                     print('4. Detected as TABLE')
                                 token = TokenSet.registerToken(Table(matchedStringParts[0]))
@@ -82,8 +79,6 @@ class Parser:
                                 if mode == 'Debug':
                                     print('5. Replacing <' + matchedString + '> with <' + ' ' + token + ' >.')
                                 string = re.sub(matchedString, ' ' + token + ' ', string)
-                                
-                                break
                                 
                             elif (patternName.startswith('COLUMN') and not matchedString.strip().startswith('__')):
                                 if mode == 'Debug':
@@ -100,8 +95,6 @@ class Parser:
                                     print('5b. Replacing <' + matchedStringParts[0] + '> with <' + ' ' + token + ' >.')
                                 string = re.sub(matchedStringParts[0], token, string)
                                 
-                                break
-                                
                             elif patternName == 'CONDITION':
                                 if mode == 'Debug':
                                     print('4. Detected as CONDITION')
@@ -112,6 +105,7 @@ class Parser:
                                 string = string[0:match.start() + offset] + token + string[match.end() + offset:len(string)]
                                 offset += len(token) - (match.end() - match.start())
                                 
+                                restart = True
                                 break
                                 
                             elif patternName == 'FUNCTION':
@@ -124,6 +118,7 @@ class Parser:
                                 string = string[0:match.start() + offset] + token + string[match.end() + offset:len(string)]
                                 offset += len(token) - (match.end() - match.start())
                                 
+                                restart = True
                                 break
                                 
                             elif patternName == 'BOOLEAN':
@@ -135,6 +130,7 @@ class Parser:
                                     print('5. Replacing <' + matchedString + '> with <'+ ' ' + token + ' ' + '>.')
                                 string = re.sub(matchedString, ' ' + token + ' ', string)
                                 
+                                restart = True
                                 break
                                 
                             elif patternName == 'AGGREGATE':
@@ -146,6 +142,7 @@ class Parser:
                                     print('5. Replacing <' + matchedString + '> with <'+ ' ' + token + '> in <' + string + '>.')
                                 string = re.sub(matchedString, ' ' + token + ' ', string)
                                 
+                                restart = True
                                 break
                                 
                             elif patternName == 'FILTER':
@@ -157,6 +154,7 @@ class Parser:
                                     print('5. Replacing <' + matchedString + '> with <'+ ' ' + token + ' ' + '>.')
                                 string = re.sub(matchedString, ' \n ' + token + ' ', string)
                                 
+                                restart = True
                                 break
                                 
                             elif patternName == 'IF':
@@ -168,6 +166,7 @@ class Parser:
                                     print('5. Replacing <' + matchedString + '> with <' + token + '>.')
                                 string = string.replace(matchedString, ' '  + token + ' ')
                                 
+                                restart = True
                                 break
                                 
                             elif patternName == 'LOOKUP':
@@ -185,6 +184,7 @@ class Parser:
                                     print('5. Replacing <' + matchedString + '> with <'+ matchedStringParts[2] + '>.')
                                 string = string.replace(matchedString.strip(), matchedStringParts[2])
                                 
+                                restart = True
                                 break
                                 
                             elif patternName == 'SETXASY':
@@ -201,6 +201,7 @@ class Parser:
                                     print('6. Replacing <' + matchedStringParts[0] + '> with <' + ' ' + token + ' >.')
                                 string = string.replace(matchedStringParts[0], token)
                                 
+                                restart = True
                                 break
                                 
                             elif patternName == 'SETAS':
@@ -212,6 +213,7 @@ class Parser:
                                     print('5. Replacing <' + matchedString + '> with <' + token + '>.')
                                 string = string.replace(matchedString.strip(), token)
                                 
+                                restart = True
                                 break
                                 
                             elif patternName == 'TUPLE':
@@ -223,6 +225,7 @@ class Parser:
                                     print('5. Replacing <' + matchedString + '> with <'+ ' ' + token + ' ' + '>.')
                                 string = re.sub(matchedString, ' ' + token + ' ', string)
                                 
+                                restart = True
                                 break
                             
                             
@@ -235,6 +238,11 @@ class Parser:
                 
                 if mode == 'Debug':
                     print('After:' + string)
+                    
+                if restart == True:
+                    print("Restarting patterns")
+                    break
+            
             if prev_string == string:
                 break
             
