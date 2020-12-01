@@ -60,6 +60,8 @@ class Parser:
                                 string = string[0:match.start() + offset] + token + string[match.end() + offset:len(string) + offset]
                                 offset += len(token) - (match.end() - match.start())
                                 
+                                break
+                                
                             if patternName == 'NUMBER':
                                 if mode == 'Debug':
                                     print('4. Detected as NUMBER')
@@ -70,6 +72,8 @@ class Parser:
                                 string = string[0:match.start() + offset] + token + string[match.end() + offset:len(string) + offset]
                                 offset += len(token) - (match.end() - match.start())
                                 
+                                break
+                                
                             if patternName == 'TABLE':
                                 if mode == 'Debug':
                                     print('4. Detected as TABLE')
@@ -78,6 +82,8 @@ class Parser:
                                 if mode == 'Debug':
                                     print('5. Replacing <' + matchedString + '> with <' + ' ' + token + ' >.')
                                 string = re.sub(matchedString, ' ' + token + ' ', string)
+                                
+                                break
                                 
                             elif (patternName.startswith('COLUMN') and not matchedString.strip().startswith('__')):
                                 if mode == 'Debug':
@@ -93,6 +99,8 @@ class Parser:
                                 if mode == 'Debug':
                                     print('5b. Replacing <' + matchedStringParts[0] + '> with <' + ' ' + token + ' >.')
                                 string = re.sub(matchedStringParts[0], token, string)
+                                
+                                break
                                 
                             elif patternName == 'CONDITION':
                                 if mode == 'Debug':
@@ -127,6 +135,8 @@ class Parser:
                                     print('5. Replacing <' + matchedString + '> with <'+ ' ' + token + ' ' + '>.')
                                 string = re.sub(matchedString, ' ' + token + ' ', string)
                                 
+                                break
+                                
                             elif patternName == 'AGGREGATE':
                                 if mode == 'Debug':
                                     print('4. Detected as AGGREGATE')
@@ -135,6 +145,8 @@ class Parser:
                                 if mode == 'Debug':
                                     print('5. Replacing <' + matchedString + '> with <'+ ' ' + token + '> in <' + string + '>.')
                                 string = re.sub(matchedString, ' ' + token + ' ', string)
+                                
+                                break
                                 
                             elif patternName == 'FILTER':
                                 if mode == 'Debug':
@@ -145,6 +157,8 @@ class Parser:
                                     print('5. Replacing <' + matchedString + '> with <'+ ' ' + token + ' ' + '>.')
                                 string = re.sub(matchedString, ' \n ' + token + ' ', string)
                                 
+                                break
+                                
                             elif patternName == 'IF':
                                 if mode == 'Debug':
                                     print('4. Detected as IF')
@@ -153,6 +167,8 @@ class Parser:
                                 if mode == 'Debug':
                                     print('5. Replacing <' + matchedString + '> with <' + token + '>.')
                                 string = string.replace(matchedString, ' '  + token + ' ')
+                                
+                                break
                                 
                             elif patternName == 'LOOKUP':
                                 if mode == 'Debug':
@@ -169,6 +185,8 @@ class Parser:
                                     print('5. Replacing <' + matchedString + '> with <'+ matchedStringParts[2] + '>.')
                                 string = string.replace(matchedString.strip(), matchedStringParts[2])
                                 
+                                break
+                                
                             elif patternName == 'SETXASY':
                                 if mode == 'Debug':
                                     print('4. Detected as SETXASY')
@@ -183,6 +201,8 @@ class Parser:
                                     print('6. Replacing <' + matchedStringParts[0] + '> with <' + ' ' + token + ' >.')
                                 string = string.replace(matchedStringParts[0], token)
                                 
+                                break
+                                
                             elif patternName == 'SETAS':
                                 if mode == 'Debug':
                                     print('4. Detected as SETAS')
@@ -192,6 +212,8 @@ class Parser:
                                     print('5. Replacing <' + matchedString + '> with <' + token + '>.')
                                 string = string.replace(matchedString.strip(), token)
                                 
+                                break
+                                
                             elif patternName == 'TUPLE':
                                 if mode == 'Debug':
                                     print('4. Detected as TUPLE')
@@ -200,6 +222,9 @@ class Parser:
                                 if mode == 'Debug':
                                     print('5. Replacing <' + matchedString + '> with <'+ ' ' + token + ' ' + '>.')
                                 string = re.sub(matchedString, ' ' + token + ' ', string)
+                                
+                                break
+                            
                             
                     except Exception as e:
                         if mode == 'Debug':
