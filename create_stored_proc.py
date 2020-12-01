@@ -10,15 +10,16 @@ if __name__ == '__main__':
     spec = pd.read_excel(sys.argv[1], sheet_name=sys.argv[2]).fillna('')
     spec = spec[spec["Appl ID"] == sys.argv[3]]
     spec = spec[spec["Target Table Name.1"] == sys.argv[4]]
-    spec = spec[spec["Stage Table"] == sys.argv[5]]
+    spec = spec[spec["Data Store Name"] == sys.argv[5] || spec["Data Store Name"] == ""]
     spec = spec[spec["Derived/Verbati?"] != "Not Needed"]
     
-    spec['Source DB Table'] = 'WDRDEV_ACTIVE_STAGE_DB.' + spec['Stage Table']
-    spec['Target DB Table'] = 'WDRDEV_INTEGRATION_LAYER_DB.' + spec['Target Table Name.1']
+    spec['Source DB Table'] = 'WDRDEV_ACTIVE_STAGE_DB.' + spec['Appl ID'] + '.' + spec['Data Store Name']
+    spec['Target Table'] = spec['Appl ID'] + '_IL_' + spec['Target Table Name.1'].str.upper() + '_' + spec['Data Store Name'].str.upper() + '_WORK'
+    spec['Target DB Table'] = 'WDRDEV_INTEGRATION_LAYER_DB.WDR_IL_WORK.' + spec['Target Table']
 
-    spec['SP NAME'] = 'fn_IL_' + spec['Appl ID'] + spec['Target Table Name.1'].str.upper() + '_' + spec['Stage Table'].str.lower()
+    spec['SP NAME'] = 'SP_IL_' + spec['Appl ID'] + '_' + spec['Target Table Name.1'].str.upper() + '_' + spec['Data Store Name'].str.lower()
 
-    spec['Python Logic'] = spec.apply(lambda x : "Set as " + x["Target Table Name.1"] if x["Derived/Verbati?"] == "Verbatim" else x["Python Logic"], axis=1)
+    spec['Python Logic'] = spec.apply(lambda x : "Set as " + x["Target Attribute Name.1"] if x["Derived/Verbati?"] == "Verbatim" else x["Python Logic"], axis=1)
 
     Query.flush()
     for index, row in spec.iterrows():
@@ -29,7 +30,7 @@ if __name__ == '__main__':
     stored_proc['Target Column'] = spec.groupby(['SP NAME'], sort=False)['Target Attribute Name.1'].agg(lambda x : '\n        ,'.join(OrderedSet(x.fillna(''))))
 
     stored_proc['Query'] = Query.genQuery().replace('\n','\n      ')
-    stored_proc['Stored Procedure'] = 'CREATE OR REPLACE PROCEDURE ' + stored_proc['SP NAME'] + '\n  RETURNS VOID\n  LANGUAGE JAVASCRIPT\n  AS\n  $$\n    //Part 1 : Business Logic\n    var bus_query    = \'\n      INSERT INTO ' + stored_proc['Target DB Table'] + '\n      (\n        ' + stored_proc['Target Column'] + '\n      )\n      ' + stored_proc['Query'] + '\';\n    var statement   =    snowflake.createStatement( {sqlText: bus_query} );\n    statement.execute();\n  $$\n  ;'
+    stored_proc['Stored Procedure'] = 'CREATE OR REPLACE PROCEDURE ' + stored_proc['SP NAME'] + '(BATCH_ID VARCHAR)\n  RETURNS VOID\n  LANGUAGE JAVASCRIPT\n  EXECUTE AS CALLER\n  AS\n  $$\n    //Part 1 : Business Logic\n    var bus_query    = \'\n      CREATE OR REPLACE TRANSIENT TABLE ' + stored_proc['Target DB Table'] + 'AS\n      ' + stored_proc['Query'] + '\';\n    var statement   =    snowflake.createStatement( {sqlText: bus_query} );\n    statement.execute();\n\n    var query2    = "CALL WDRDEV_COMMON_DB.CODE.REPO.SP_META_PERFORM_CDC(\'\'" + BATCH_ID + "\'\', \'\'' + spec['Target Table'] + '\'\', \'\'' + spec['Target Table Name.1'].str.upper() + '\'\', \'\'Type 2\'\')";\n    var statement   =    snowflake.createStatement( {sqlText: query2} );\n    statement.execute();\n  $$\n  ;'
     
     stored_proc.to_csv(stored_proc['SP NAME'].unique()[0] + ".sql", columns=['Stored Procedure'], header=None, index=None, sep=';', quotechar=' ')
 
