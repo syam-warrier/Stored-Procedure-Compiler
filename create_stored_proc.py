@@ -11,6 +11,7 @@ if __name__ == '__main__':
     spec = spec[spec["Appl ID"] == sys.argv[3]]
     spec = spec[spec["Target Table Name.1"] == sys.argv[4]]
     spec = spec[(spec["Data Store Name"] == sys.argv[5]) | (spec["Business Logic"] == "")]
+    spec["Data Store Name"] = sys.argv[5]
     spec = spec[spec["Derived/Verbati?"] != "Not Needed"]
     
     spec['Source DB Table'] = 'WDRDEV_ACTIVE_STAGE_DB.' + spec['Appl ID'] + '.' + spec['Data Store Name']
