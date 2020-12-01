@@ -7,7 +7,7 @@ from OrderedSet import OrderedSet
 
 if __name__ == '__main__':
     
-    spec = pd.read_excel(sys.argv[1], sheet_name=sys.argv[2]).fillna('')
+    spec = pd.read_excel(sys.argv[1], sheet_name=sys.argv[2], keep_default_na=False).fillna('')
     spec = spec[spec["Appl ID"] == sys.argv[3]]
     spec = spec[spec["Target Table Name.1"] == sys.argv[4]]
     spec = spec[(spec["Data Store Name"] == sys.argv[5]) | (spec["Stage Table"] == "")]
