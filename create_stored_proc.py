@@ -7,7 +7,7 @@ from OrderedSet import OrderedSet
 
 if __name__ == '__main__':
     
-    spec = pd.read_excel(sys.argv[1], sheet_name=sys.argv[2], keep_default_na=False).fillna('')
+    spec = pd.read_excel(sys.argv[1], sheet_name=sys.argv[2], keep_default_na=False)
     spec = spec[spec["Appl ID"] == sys.argv[3]]
     spec = spec[spec["Target Table Name.1"] == sys.argv[4]]
     spec = spec[(spec["Data Store Name"] == sys.argv[5]) | (spec["Stage Table"] == "")]
@@ -29,9 +29,11 @@ if __name__ == '__main__':
     stored_proc = spec.groupby(['SP NAME'], sort=False)[['SP NAME']].agg(lambda x : '\n          ,'.join(OrderedSet(x.fillna(''))))
     stored_proc['Target DB Table'] = spec.groupby(['SP NAME'], sort=False)['Target DB Table'].agg(lambda x : '\n      '.join(OrderedSet(x.fillna(''))))
     stored_proc['Target Column'] = spec.groupby(['SP NAME'], sort=False)['Target Attribute Name.1'].agg(lambda x : '\n        ,'.join(OrderedSet(x.fillna(''))))
+    stored_proc['Target Table'] = spec.groupby(['SP NAME'], sort=False)['Target Table'].agg(lambda x : '\n        ,'.join(OrderedSet(x.fillna(''))))
+    stored_proc['Target Table Name.1'] = spec.groupby(['SP NAME'], sort=False)['Target Table Name.1'].agg(lambda x : '\n        ,'.join(OrderedSet(x.fillna(''))))
 
     stored_proc['Query'] = Query.genQuery().replace('\n','\n      ')
-    stored_proc['Stored Procedure'] = 'CREATE OR REPLACE PROCEDURE ' + stored_proc['SP NAME'] + '(BATCH_ID VARCHAR)\n  RETURNS VOID\n  LANGUAGE JAVASCRIPT\n  EXECUTE AS CALLER\n  AS\n  $$\n    //Part 1 : Business Logic\n    var bus_query    = \'\n      CREATE OR REPLACE TRANSIENT TABLE ' + stored_proc['Target DB Table'] + 'AS\n      ' + stored_proc['Query'] + '\';\n    var statement   =    snowflake.createStatement( {sqlText: bus_query} );\n    statement.execute();\n\n    var query2    = "CALL WDRDEV_COMMON_DB.CODE.REPO.SP_META_PERFORM_CDC(\'\'" + BATCH_ID + "\'\', \'\'' + spec['Target Table'] + '\'\', \'\'' + spec['Target Table Name.1'].str.upper() + '\'\', \'\'Type 2\'\')";\n    var statement   =    snowflake.createStatement( {sqlText: query2} );\n    statement.execute();\n  $$\n  ;'
+    stored_proc['Stored Procedure'] = 'CREATE OR REPLACE PROCEDURE ' + stored_proc['SP NAME'] + '(BATCH_ID VARCHAR)\n  RETURNS VOID\n  LANGUAGE JAVASCRIPT\n  EXECUTE AS CALLER\n  AS\n  $$\n    //Part 1 : Business Logic\n    var bus_query    = \'\n      CREATE OR REPLACE TRANSIENT TABLE ' + stored_proc['Target DB Table'] + 'AS\n      ' + stored_proc['Query'] + '\';\n    var statement   =    snowflake.createStatement( {sqlText: bus_query} );\n    statement.execute();\n\n    var query2    = "CALL WDRDEV_COMMON_DB.CODE.REPO.SP_META_PERFORM_CDC(\'\'" + BATCH_ID + "\'\', \'\'' + stored_proc['Target Table'] + '\'\', \'\'' + stored_proc['Target Table Name.1'].str.upper() + '\'\', \'\'Type 2\'\')";\n    var statement   =    snowflake.createStatement( {sqlText: query2} );\n    statement.execute();\n  $$\n  ;'
     
     stored_proc.to_csv(stored_proc['SP NAME'].unique()[0] + ".sql", columns=['Stored Procedure'], header=None, index=None, sep=';', quotechar=' ')
 
