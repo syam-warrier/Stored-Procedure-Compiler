@@ -10,7 +10,7 @@ if __name__ == '__main__':
     spec = pd.read_excel(sys.argv[1], sheet_name=sys.argv[2]).fillna('')
     spec = spec[spec["Appl ID"] == sys.argv[3]]
     spec = spec[spec["Target Table Name.1"] == sys.argv[4]]
-    spec = spec[spec["Data Store Name"] == sys.argv[5] OR spec["Data Store Name"] == ""]
+    spec = spec[spec["Data Store Name"] == sys.argv[5] | spec["Data Store Name"] == ""]
     spec = spec[spec["Derived/Verbati?"] != "Not Needed"]
     
     spec['Source DB Table'] = 'WDRDEV_ACTIVE_STAGE_DB.' + spec['Appl ID'] + '.' + spec['Data Store Name']
