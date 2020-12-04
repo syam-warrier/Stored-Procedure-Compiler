@@ -13,6 +13,7 @@ if __name__ == '__main__':
     spec = spec[(spec["Data Set Name"] == sys.argv[5]) | (spec["Stage Table"] != "NA")]
     spec["Data Set Name"] = sys.argv[5]
     spec = spec[spec["Derived/Verbati?"] != "Not Needed"]
+    spec = spec[spec["Source Column Description"] != "POSTLOAD"]
     
     spec['Source DB Table'] = 'WDRDEV_ACTIVE_STAGE_DB.' + spec['Appl ID'] + '.' + spec['Data Set Name']
     spec['Target Table'] = spec['Appl ID'] + '_IL_' + spec['Target Table Name.1'].str.upper() + '_' + spec['Data Set Name'].str.upper() + '_WORK'
