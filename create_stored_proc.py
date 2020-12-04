@@ -10,15 +10,15 @@ if __name__ == '__main__':
     spec = pd.read_excel(sys.argv[1], sheet_name=sys.argv[2], keep_default_na=False)
     spec = spec[spec["Appl ID"] == sys.argv[3]]
     spec = spec[spec["Target Table Name.1"] == sys.argv[4]]
-    spec = spec[(spec["Data Store Name"] == sys.argv[5]) | (spec["Stage Table"] == "")]
-    spec["Data Store Name"] = sys.argv[5]
+    spec = spec[(spec["Data Set Name"] == sys.argv[5]) | (spec["Stage Table"] != "NA")]
+    spec["Data Set Name"] = sys.argv[5]
     spec = spec[spec["Derived/Verbati?"] != "Not Needed"]
     
-    spec['Source DB Table'] = 'WDRDEV_ACTIVE_STAGE_DB.' + spec['Appl ID'] + '.' + spec['Data Store Name']
-    spec['Target Table'] = spec['Appl ID'] + '_IL_' + spec['Target Table Name.1'].str.upper() + '_' + spec['Data Store Name'].str.upper() + '_WORK'
+    spec['Source DB Table'] = 'WDRDEV_ACTIVE_STAGE_DB.' + spec['Appl ID'] + '.' + spec['Data Set Name']
+    spec['Target Table'] = spec['Appl ID'] + '_IL_' + spec['Target Table Name.1'].str.upper() + '_' + spec['Data Set Name'].str.upper() + '_WORK'
     spec['Target DB Table'] = 'WDRDEV_INTEGRATION_LAYER_DB.WDR_IL_WORK.' + spec['Target Table']
 
-    spec['SP NAME'] = 'SP_IL_' + spec['Appl ID'] + '_' + spec['Target Table Name.1'].str.upper() + '_' + spec['Data Store Name'].str.lower()
+    spec['SP NAME'] = 'SP_IL_' + spec['Appl ID'] + '_' + spec['Target Table Name.1'].str.upper() + '_' + spec['Data Set Name'].str.lower()
 
     spec['Python Logic'] = spec.apply(lambda x : "Set as " + x["Target Attribute Name.1"] if x["Derived/Verbati?"] == "Verbatim" else x["Python Logic"], axis=1)
 
