@@ -240,7 +240,6 @@ class Parser:
                     print('After:' + string)
                     
                 if restart == True:
-                    print("Restarting patterns")
                     break
             
             if prev_string == string:
